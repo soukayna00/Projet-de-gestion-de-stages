@@ -1,0 +1,18 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Laravel
+/vendor
+.env
+/storage/*.key
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
