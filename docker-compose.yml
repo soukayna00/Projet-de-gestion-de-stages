@@ -74,7 +74,7 @@ services:
   #  Vue Frontend
   # =====================
   frontend:
-    image: node:22
+#     image: node:22
     container_name: vue_app
     working_dir: /app
     volumes:

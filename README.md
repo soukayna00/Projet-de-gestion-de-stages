@@ -11,3 +11,13 @@ http://localhost:8000
 
 ## Frontend
 http://localhost:5173
+
+## getting started
+git checkout -b feature/nom-feature
+
+## Travail + merge
+git push origin feature/nom-feature
+
+## develop = intégration
+develop → main
+feature/*  →  develop  →  main
