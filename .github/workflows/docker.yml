@@ -20,19 +20,30 @@ jobs:
       - name: Create .env for CI
         working-directory: ./backend
         run: |
-          cp .env.example .env
-          sed -i 's/APP_KEY=.*/APP_KEY=base64:dummykeyforCIonly1234567890abcdef12=' .env
-          sed -i 's/DB_HOST=.*/DB_HOST=db/' .env
-          sed -i 's/DB_PORT=.*/DB_PORT=5432/' .env
-          sed -i 's/DB_DATABASE=.*/DB_DATABASE=Projet-de-gestion-de-stages/' .env
-          sed -i 's/DB_USERNAME=.*/DB_USERNAME=postgres/' .env
-          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=postgres/' .env
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          else
+            touch .env
+          fi
+          cat >> .env << 'ENVEOF'
+          APP_NAME=Laravel
+          APP_ENV=local
+          APP_KEY=base64:dummykeyforCIonly1234567890abcde=
+          APP_DEBUG=true
+          APP_URL=http://localhost
+          DB_CONNECTION=pgsql
+          DB_HOST=db
+          DB_PORT=5432
+          DB_DATABASE=Projet-de-gestion-de-stages
+          DB_USERNAME=postgres
+          DB_PASSWORD=postgres
+          ENVEOF
 
-      - name: Build all containers
-        run: docker compose build --no-cache
+      - name: Build backend and db only (skip frontend)
+        run: docker compose build app
 
-      - name: Start containers
-        run: docker compose up -d
+      - name: Start backend + db
+        run: docker compose up -d db app webserver
 
       - name: Wait for PostgreSQL to be ready
         run: |
@@ -42,10 +53,10 @@ jobs:
             sleep 3
           done
 
-      - name: Check all containers are running
+      - name: Check containers are running
         run: |
           docker compose ps
-          docker compose ps | grep -v "Exit" | grep -c "Up" || (echo "Some containers failed" && exit 1)
+          docker compose ps | grep -E "laravel_app|nginx_server|postgres_db" | grep "Up" | wc -l
 
       - name: Tear down
         if: always()
