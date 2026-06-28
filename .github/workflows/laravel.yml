@@ -11,18 +11,19 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      mysql:
-        image: mysql:8.0
+      postgres:
+        image: postgres:16
         env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: gestion_stages_test
+          POSTGRES_DB: gestion_stages_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
-          - 3306:3306
+          - 5432:5432
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="pg_isready -U postgres"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=3
+          --health-retries=5
 
     steps:
       - name: Checkout code
@@ -32,7 +33,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, bcmath, pdo, pdo_mysql
+          extensions: mbstring, bcmath, pdo, pdo_pgsql
           coverage: none
 
       - name: Copy .env
@@ -47,14 +48,14 @@ jobs:
         working-directory: ./backend
         run: php artisan key:generate
 
-      - name: Set DB config in .env
+      - name: Override DB config for CI
         working-directory: ./backend
         run: |
           sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
-          sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env
+          sed -i 's/DB_PORT=.*/DB_PORT=5432/' .env
           sed -i 's/DB_DATABASE=.*/DB_DATABASE=gestion_stages_test/' .env
-          sed -i 's/DB_USERNAME=.*/DB_USERNAME=root/' .env
-          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root/' .env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=postgres/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=postgres/' .env
 
       - name: Run migrations
         working-directory: ./backend
